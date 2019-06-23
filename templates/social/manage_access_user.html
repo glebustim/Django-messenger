@@ -1,0 +1,201 @@
+{% extends "base.html" %}
+
+{% block content %}
+    <style>
+      table {
+            border-collapse: collapse; /*убираем пустые промежутки между ячейками*/
+            border: 1px solid grey; /*устанавливаем для таблицы внешнюю границу серого цвета толщиной 1px*/
+        }
+      td{
+            border: 1px solid grey; /*устанавливаем для таблицы внешнюю границу серого цвета толщиной 1px*/
+      }
+    </style>
+
+    <script>
+
+    function getCookie(name) {
+    var cookieValue = null;
+    if (document.cookie && document.cookie != '') {
+        var cookies = document.cookie.split(';');
+        for (var i = 0; i < cookies.length; i++) {
+            var cookie = jQuery.trim(cookies[i]);
+            // Does this cookie string begin with the name we want?
+            if (cookie.substring(0, name.length + 1) == (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
+};
+
+        var data = {};
+        $(document).ready(function() {
+            // чекнуть чекбоксы в соотвест. с data
+            for (var user in data){
+                for (var room in data[user]){
+                    if (data[user][room] >= 1) {
+                        var ch = document.getElementById(user + '_' + room + '_read');
+                        ch.checked = true;
+                    }
+                    if (data[user][room] >= 2) {
+                        var ch = document.getElementById(user + '_' + room + '_write');
+                        ch.checked = true;
+                    }
+                    if (data[user][room] >= 3) {
+                        var ch = document.getElementById(user + '_' + room + '_admin');
+                        ch.checked = true;
+                    }
+                }
+            }
+        });
+
+{#        {% for x in ual %} // сформировать data на основе прав#}
+{#                if (!('{{ x.user }}' in data)){#}
+{#                    data['{{ x.user }}'] = {};#}
+{#                }#}
+{#                data['{{ x.user }}']['{{ x.room.name }}'] = '{{ x.access }}';#}
+{#        {% endfor %}#}
+
+        {% for username,rooms in data.items %}
+            data['{{ username }}'] = {}
+            {% for roomname,access in rooms.items %}
+                data['{{ username }}']['{{ roomname }}'] = {{ access }}
+            {% endfor %}
+        {% endfor %}
+
+        function change_data(user,room){
+            // изменить data в соотвеств. с чекбоксами
+            var access = 0;
+            var ch = document.getElementById(user + '_' + room + '_read');
+            if (ch.checked) access = 1;
+            var ch = document.getElementById(user + '_' + room + '_write');
+            if (ch.checked) access = 2;
+            var ch = document.getElementById(user + '_' + room + '_admin');
+            if (ch.checked) access = 3;
+            console.log(user);
+            console.log(room);
+            console.log(data);
+            data[user][room] = access;
+        }
+
+        function save_data(){
+            msg = JSON.stringify(data);
+            var csrftoken = getCookie('csrftoken');
+            $.ajax({
+                beforeSend: function (xhr, settings) {
+                    xhr.setRequestHeader("X-CSRFToken", csrftoken);
+                },
+                type: 'POST',
+                url: '/manage_access_users',
+                data: 'data='+msg,
+                success: function (data) {
+                    location = location; // обновить страницу
+                },
+                error: function (xhr, str) {
+                    alert('Ошибка связи с сервером.');
+                }
+            });
+        }
+
+        function set_all_users(access,room,check) {
+            var ch_read = document.getElementById('all_users_'+room+'_read');
+            var ch_write = document.getElementById('all_users_'+room+'_write');
+            var ch_admin = document.getElementById('all_users_'+room+'_admin');
+
+            if (check){
+                if (access == 'admin'){
+                    ch_read.checked = true;
+                    ch_write.checked = true;
+                }
+                else {
+                    if (access == 'write') {
+                        ch_read.checked = true;
+                    }
+                }
+            }
+            else {
+                if (access == 'read'){
+                    ch_admin.checked = false;
+                    ch_write.checked = false;
+                }
+                else {
+                    if (access == 'write') {
+                        ch_admin.checked = false;
+                    }
+                }
+            }
+
+            for (var user in data) {
+                data[user][room] = 0;
+                var ch_user_read = document.getElementById(user+'_'+room+'_read');
+                var ch_user_write = document.getElementById(user+'_'+room+'_write');
+                var ch_user_admin = document.getElementById(user+'_'+room+'_admin');
+
+                if (ch_read.checked) {
+                    data[user][room] = 1;
+                    ch_user_read.checked = true;
+                }
+                else {
+                    ch_user_read.checked = false;
+                }
+
+                if (ch_write.checked) {
+                    data[user][room] = 2;
+                    ch_user_write.checked = true;
+                }
+                else {
+                    ch_user_write.checked = false;
+                }
+
+                if (ch_admin.checked) {
+                    data[user][room] = 3;
+                    ch_user_admin.checked = true;
+                }
+                else {
+                    ch_user_admin.checked = false;
+                }
+
+            }
+        }
+
+        function set_all_rooms(access,user,check){
+            console.log(access,user,check);
+        }
+
+    </script>
+
+    <table>
+        <tr>
+        <td></td>
+                {% for room in rooms %}
+                    <td>
+                        {{ room }} <br>
+                        <input type="checkbox" id = "all_users_{{ room.name }}_read"  onclick="set_all_users('read','{{ room.name }}',this.checked)">
+                        <input type="checkbox" id = "all_users_{{ room.name }}_write" onclick="set_all_users('write','{{ room.name }}',this.checked)">
+                        <input type="checkbox" id = "all_users_{{ room.name }}_admin" onclick="set_all_users('admin','{{ room.name }}',this.checked)">
+                    </td>
+                {% endfor %}
+
+        </tr>
+        {% for u in users %}
+            <tr>
+            <td>
+                {{ u }}
+{#                        <input type="checkbox" onclick="set_all_rooms('read','{{ u.username }}',this.checked)">#}
+{#                        <input type="checkbox" onclick="set_all_rooms('write','{{ u.username }}',this.checked)">#}
+{#                        <input type="checkbox" onclick="set_all_rooms('admin','{{ u.username }}',this.checked)">#}
+            </td>
+                {% for room in rooms %}
+                    <td>
+                        <input type="checkbox" id = '{{ u }}_{{ room.name }}_read' onclick = "change_data('{{ u }}','{{ room.name }}')">
+                        <input type="checkbox" id = '{{ u }}_{{ room.name }}_write' onclick = "change_data('{{ u }}','{{ room.name }}')">
+                        <input type="checkbox" id = '{{ u }}_{{ room.name }}_admin' onclick = "change_data('{{ u }}','{{ room.name }}')">
+                    </td>
+                {% endfor %}
+            </tr>
+        {% endfor %}
+    </table>
+
+<button onclick="save_data();">Сохранить</button>
+{% endblock %}

@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+    <head>
+        <meta http-equiv="content-type" content="text/html; charset=UTF-8" />
+        <title>
+            {%  block title %}
+            {% endblock %}
+        </title>
+        {% load staticfiles %}
+        <script
+              src="https://code.jquery.com/jquery-3.4.1.min.js"
+              integrity="sha256-CSXorXvZcTkaix6Yvo6HppcZGetbYMGWSFlBw8HfCJo="
+              crossorigin="anonymous">
+        </script>
+        <script type="text/javascript" src="{% static "social/js/main.js" %}" ></script>
+        {% load bootstrap3 %}
+        {% bootstrap_css %} {% bootstrap_javascript %} {% bootstrap_messages %}
+        <link rel="stylesheet" href= "{% static "social/css/main.css" %}">
+
+  </head>
+
+<body>
+    <nav class="navbar navbar-inverse">
+        <div class="container-fluid">
+            <div class="navbar-header">
+                <button type="button" class="navbar-toggle" data-toggle="fixed-top" data-target=".navbar-collapse">...
+                </button>
+                {% if user.is_staff %}
+                    <a class="navbar-brand" href="/manage">Администрирование</a>
+                {% endif %}
+                <a class="navbar-brand" href="/">Главная</a>
+                <a class="navbar-brand" href="/rooms">Комнаты</a>
+                <a class="navbar-brand" href="/users">Пользователи</a>
+                    {% if user.is_authenticated %}
+                        <p class="navbar-text">
+                            Добро пожаловать, <a href="{{ user.profile.get_absolute_url }}">{{ user.username }}</a>
+                        </p>
+
+                    {% else %}
+                        <p class="navbar-text">
+                            <a href="{% url 'register' %}">Зарегистрироваться</a> | <a href="{% url 'login' %}">Войти</a>
+                        </p>
+                    {% endif %}
+            </div>
+
+            {% if user.is_authenticated %}
+                <p class="navbar-text navbar-right"><a href="{% url 'logout' %}">Выйти</a></p>
+            {% endif %}
+        </div>
+    </nav>
+
+    <br> <br> <br>
+    <div class="container" id = "content">
+
+        {% block content %}
+        {% endblock %}
+
+{#        {% include 'tasks/yandex.html' %}#}
+
+    </div>
+
+</body>
+</html>

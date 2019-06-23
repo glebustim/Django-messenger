@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+
+{% block title %}
+    {{ room.name }}
+{% endblock %}
+
+{% block content %}
+    <script>
+      function send_message(this_form){
+        var msg = $(this_form).serialize();
+        console.log('msg:'+msg);
+        $.ajax({
+          type: 'POST',
+          url: 'room{{ room.id }}',
+          data: msg,
+          success: function(data) {
+                 console.log(data);
+                  var new_message = document.createElement('div');
+                  new_message.innerHTML = data;
+                  new_message.setAttribute('id','msg1234');
+                 var list_messages = document.getElementById('list_messages');
+                 list_messages.insertBefore(new_message, list_messages.firstChild);
+          },
+          error:  function(xhr, str){
+                alert('Ошибка связи с сервером. ' + xhr.responseCode);
+            }
+        });
+      }
+    </script>
+    <h1>{{ room.name }}</h1>
+    <h3>создана <a href="{{ room.creator.profile.get_absolute_url }}">{{ room.creator.username }}</a></h3>
+    <p>{{ room.about }}</p>
+    <hr>
+    <form method="POST">
+        {% csrf_token %}
+        Заголовок: {{ form.title }} <br> <br>
+        <input type="hidden" name="author" value ={{ user.id }}>
+        <input type="hidden" name="room" value={{ room.id }}>
+        Текст: {{ form.text }} <br> <br>
+        <button type="button" onclick="send_message(this.form)">Отправить</button>
+    </form>
+    <div id="list_messages">
+        {% for message in room.messages.all|dictsortreversed:"date" %}
+            <div id="msg{{ message.id }}">
+                {% include 'social/one_msg.html' %}
+            </div>
+        {% endfor %}
+    </div>
+{% endblock %}

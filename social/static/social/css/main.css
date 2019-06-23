@@ -1,0 +1,23 @@
+head, body {
+    background-image: url("img/web2.PNG");
+    background-size: cover;
+    background-attachment: fixed;
+    font-family: sans-serif;
+    text-align: center;
+    word-spacing: 2px;
+    word-break: break-all;
+}
+
+hr {
+    border-color: black;
+    width: 60%;
+}
+
+nav.navbar-inverse {
+    background-color: darkblue;
+    border-color: cornflowerblue;
+    border-width: 2px;
+    position: fixed;
+    width: 100%;
+    font-family: Arial, sans-serif;
+}

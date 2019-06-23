@@ -1,0 +1,52 @@
+{% extends "base.html" %}
+
+{% block title %}
+    Комнаты
+{% endblock %}
+
+{% block content %}
+    <script>
+      function send_room(this_form){
+        var room = $(this_form).serialize();
+        console.log('room:'+room);
+        $.ajax({
+          type: 'POST',
+          url: 'rooms',
+          data: room,
+          success: function(data) {
+                 console.log(data);
+                  var new_room = document.createElement('div');
+                  new_room.innerHTML = data;
+                  new_room.setAttribute('id','msg1234');
+                 var list_rooms = document.getElementById('list_rooms');
+                 list_rooms.insertBefore(new_room, list_rooms.firstChild);
+          },
+          error:  function(xhr, str){
+                alert('Ошибка связи с сервером. ' + xhr.responseCode);
+            }
+        });
+      }
+    </script>
+<h1>Комнаты</h1>
+    <hr>
+    <form method="POST">
+        {% csrf_token %}
+        Название: {{ form.name }} <br> <br>
+        <input type="hidden" name="creator" value={{ user.id }}>
+        Описание: {{ form.about }} <br> <br>
+        <button type="button" onclick="send_room(this.form)">Отправить</button>
+    </form>
+    {{ form.errors }}
+    <hr>
+    {{ friends_rooms }}
+    <br>
+    {{ other_rooms }}
+    <br>
+    <div id="list_rooms">
+        {% for room in rooms %}
+            <div id="room{{ room.id }}">
+                {% include 'social/one_room.html' %}
+            </div>
+        {% endfor %}
+    </div>
+{% endblock %}

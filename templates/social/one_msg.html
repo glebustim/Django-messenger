@@ -1,0 +1,5 @@
+        <hr>
+        <h2>{{ message.title }}</h2>
+        <h4>от <a href="{{ room.creator.profile.get_absolute_url }}">{{ message.author.username }}</a></h4>
+        <p>{{ message.text }}</p>
+        <p>{{ message.date }}</p>

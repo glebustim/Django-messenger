@@ -1,0 +1,41 @@
+{% extends 'base.html' %}
+
+{% block title %}
+    {{ usern.user.username }}
+{% endblock %}
+
+{% block content %}
+    <script>
+      function friend_request(){
+        var msg = 'action=add_user&id={{ usern.id }}';
+        var csrftoken = getCookie('csrftoken');
+        $.ajax({
+            beforeSend: function(xhr, settings) {
+                    xhr.setRequestHeader("X-CSRFToken", csrftoken);
+            },
+          type: 'POST',
+          url: 'action',
+          data: msg,
+          success: function(data) {
+                 console.log(data);
+          },
+          error:  function(xhr, str){
+                alert('Ошибка связи с сервером. ' + xhr.responseCode);
+            }
+        });
+      }
+    </script>
+    <h1>{{ usern.user.username }}</h1>
+    <button type="button" onclick="friend_request()">Добавить в друзья</button>
+    <hr>
+    <h3>О себе:</h3>
+    <p>{{ usern.about }}</p>
+    <hr>
+    <h3>Образование:</h3>
+    <p>{{ usern.education }}</p>
+    <hr>
+    <h3>Созданные комнаты:</h3>
+    {% for room in usern.user.rooms.all %}
+        <p><a href="{{ room.get_absolute_url }}">{{ room.name }}</a></p>
+    {% endfor %}
+{% endblock %}
